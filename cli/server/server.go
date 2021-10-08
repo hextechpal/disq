@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/ppal31/disq/internal/storage"
 	"gopkg.in/alecthomas/kingpin.v2"
+	"io"
 	"os"
 )
 
@@ -22,10 +23,12 @@ func (c *Command) run(*kingpin.ParseContext) error {
 		if c.file == "" {
 			return errors.New("provide filepath for ondisk backend")
 		}
-		st, err = initOnDisk(c.file)
+		var cls io.Closer
+		st, cls, err = initOnDisk(c.file)
 		if err != nil {
 			return err
 		}
+		defer cls.Close()
 	default:
 		return errors.New("provide appropriate backend")
 	}
@@ -33,12 +36,25 @@ func (c *Command) run(*kingpin.ParseContext) error {
 	return s.Start()
 }
 
-func initOnDisk(filePath string) (storage.Storage, error) {
+func initOnDisk(filePath string) (storage.Storage, io.Closer, error) {
+	if _, err := os.Stat(filePath); err != nil {
+		if os.IsNotExist(err) {
+			return createFile(filePath)
+		}
+		return nil, nil, err
+	}
+	if err := os.Remove(filePath); err != nil{
+		return nil, nil, err
+	}
+	return createFile(filePath)
+}
+
+func createFile(filePath string) (storage.Storage, io.Closer, error) {
 	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_RDWR, 0666)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return storage.NewOnDisk(file), nil
+	return storage.NewOnDisk(file), file, nil
 }
 
 func initInMemory() storage.Storage {

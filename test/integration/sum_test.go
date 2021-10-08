@@ -12,10 +12,8 @@ import (
 )
 
 const (
-	//MaxNumbers = 1000000
-	MaxNumbers = 100
-	//ChunkSize  = 1024 * 1024
-	ChunkSize = 10
+	MaxNumbers = 1000000
+	ChunkSize  = 1024 * 1024
 )
 
 func TestDisq_Sum(t *testing.T) {
@@ -68,7 +66,7 @@ func receive(c *client.Client) (sum int64, err error) {
 			ints := strings.Split(string(b), "\n")
 			for _, val := range ints {
 				num, _ := strconv.Atoi(val)
-				log.Printf("Number Received: %d\n", num)
+				//log.Printf("Number Received: %d\n", num)
 				sum += int64(num)
 			}
 			buf = make([]byte, ChunkSize)

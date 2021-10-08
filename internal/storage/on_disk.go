@@ -6,8 +6,7 @@ import (
 )
 
 const (
-	//MaxBlockSize = 1024 * 1024
-	MaxBlockSize = 10
+	MaxBlockSize = 1024 * 1024
 )
 
 type OnDisk struct {
